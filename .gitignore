@@ -1,0 +1,14 @@
+record/
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+*.so
+*.dll
+*.exe
+*.o
+*.a
+*.lib
+*.so.*
+*.dylib
+*.dSYM
