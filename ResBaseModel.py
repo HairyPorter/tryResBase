@@ -19,12 +19,18 @@ class Classifier(nn.Module):
 
     def __init__(self, input_num: int, num_classes: int):
         super(Classifier, self).__init__()
-        self.fc = nn.Linear(input_num, num_classes)
-        self.softmax = nn.Softmax(dim=1)
+        self.fc1 = nn.Linear(input_num, num_classes)
+        self.fc2 = nn.Linear(num_classes, num_classes)
+        self.relu = nn.ReLU()
+        # self.softmax = nn.Softmax(dim=1)
 
     def forward(self, x):
-        x = self.fc(x)
+        # x = self.fc1(x)
         # x = self.softmax(x)
+        # 改用一层隐藏层的MLP
+        x = self.fc1(x)
+        x = self.relu(x)
+        x = self.fc2(x)
         return x
 
 
@@ -33,7 +39,7 @@ class ResBaseModel(nn.Module):
         super(ResBaseModel, self).__init__()
 
         self.resnet = resnet18(weights=ResNet18_Weights.DEFAULT)
-        self.resnet.fc = nn.Identity()
+        self.resnet.fc = nn.Identity() # type: ignore
         self.classifier = Classifier(512, 10)
 
     def forward(self, x):

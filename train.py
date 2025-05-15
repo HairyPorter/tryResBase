@@ -36,16 +36,13 @@ if __name__ == "__main__":
         "train": DataLoader(dataset["train"], batch_size=64, shuffle=True,num_workers=8),
         "val": DataLoader(dataset["val"], batch_size=64, shuffle=True,num_workers=8),
     }
-    # for batch in dataLoader["train"]:
-    #     print(batch[0].shape)
-    #     break
-    # for batch in dataLoader["val"]:
-    #     print(batch[0].shape)
-    #     break
+
     model = ResBaseModel().to(device)
+
     # 冻结指定参数
+    # 解冻layer4
     for name, param in model.named_parameters():
-        if name.startswith("resnet"):
+        if name.startswith("resnet") and not name.startswith("resnet.layer4"):
             param.requires_grad = False
     optimizer = torch.optim.SGD(filter(lambda p:p.requires_grad, model.parameters()), lr=0.01)
 

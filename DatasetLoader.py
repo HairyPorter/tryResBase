@@ -4,6 +4,8 @@ import torchvision, torch
 from torchvision import transforms
 from typing import Dict
 from enum import Enum
+from torch.utils.data import Dataset
+from torchvision.datasets import MNIST
 
 
 class DatasetEnum(Enum):
@@ -12,6 +14,7 @@ class DatasetEnum(Enum):
 
 
 def get_dataset(dataset_name: DatasetEnum) -> Dict[str, torch.utils.data.Dataset]:
+    '''获取数据集字典，包括train和val'''
     dataset_name_list = ["MNIST"]
     if dataset_name.value not in dataset_name_list:
         raise ValueError("Dataset not found")
