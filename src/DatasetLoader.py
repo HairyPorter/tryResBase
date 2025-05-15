@@ -9,11 +9,18 @@ from torchvision.datasets import MNIST
 
 
 class DatasetEnum(Enum):
+
     MNIST = "MNIST"
+    @classmethod
+    def str_to_enum(cls, name: str) -> "DatasetEnum":
+        for member in cls:
+            if member.value == name:
+                return member
+        raise ValueError(f"{name} is not a valid {cls.__name__}")
 
 
 
-def get_dataset(dataset_name: DatasetEnum) -> Dict[str, torch.utils.data.Dataset]:
+def get_dataset(dataset_name: DatasetEnum) -> Dict[str, Dataset]:
     '''获取数据集字典，包括train和val'''
     dataset_name_list = ["MNIST"]
     if dataset_name.value not in dataset_name_list:
@@ -23,7 +30,7 @@ def get_dataset(dataset_name: DatasetEnum) -> Dict[str, torch.utils.data.Dataset
         return get_MNIST()
     
 
-def get_MNIST() -> Dict[str, torch.utils.data.Dataset]:
+def get_MNIST() -> Dict[str, Dataset]:
     train_transforms = transforms.Compose(
         [
             transforms.Resize(224),

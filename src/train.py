@@ -3,7 +3,9 @@
 import os
 from typing import Dict
 
-from numpy import save
+
+import hydra
+from omegaconf import DictConfig
 from torch.utils.tensorboard.writer import SummaryWriter
 from tqdm import tqdm
 from DatasetLoader import DatasetEnum, get_dataset
@@ -14,30 +16,31 @@ from ResBaseModel import ResBaseModel
 import matplotlib.pyplot as plt
 from datetime import datetime
 from torch.utils.data import Dataset
-
-if __name__ == "__main__":
-    # 加载数据集    
-    num_epoch = 100
-    comment = "ResBase_1"
-    save_root = f"./record/{comment}_{datetime.now().strftime(r'%y%m%d_%H%M')}"
-
+from torch import nn
+@hydra.main(version_base=None,config_path="conf",config_name="config")
+def train(cfg:DictConfig)->None:
     
+    num_epoch:int = cfg.num_epoch
+    comment:str = cfg.comment
 
+    save_root:str = f"./record/{comment}_{datetime.now().strftime(r'%y%m%d_%H%M')}"
+    dataset_name:DatasetEnum = DatasetEnum.MNIST
+    
+    # 加载数据集    
+    dataset:Dict[str,Dataset] = get_dataset(dataset_name)
+    dataLoader:Dict[str,DataLoader] = {
+        "train": DataLoader(dataset["train"], batch_size=64, shuffle=True,num_workers=8),
+        "val": DataLoader(dataset["val"], batch_size=64, shuffle=True,num_workers=8),
+    }
+
+    # device
     if torch.cuda.is_available():
         device = torch.device("cuda")
     else:
         device = torch.device("cpu")
 
-
-    dataset_name = DatasetEnum.MNIST
-
-    dataset:Dict[str,Dataset] = get_dataset(dataset_name)
-    dataLoader = {
-        "train": DataLoader(dataset["train"], batch_size=64, shuffle=True,num_workers=8),
-        "val": DataLoader(dataset["val"], batch_size=64, shuffle=True,num_workers=8),
-    }
-
-    model = ResBaseModel().to(device)
+    # 模型
+    model:nn.Module = ResBaseModel().to(device)
 
     # 冻结指定参数
     # 解冻layer4
@@ -125,5 +128,5 @@ if __name__ == "__main__":
             writer.add_scalars("acc",{"train":acc_epoch["train"][-1],"val":acc_epoch["val"][-1]},epoch)
 
 
-
-        
+if __name__ == "__main__":
+    train()
