@@ -11,6 +11,7 @@ from torchvision.datasets import MNIST
 class DatasetEnum(Enum):
 
     MNIST = "MNIST"
+
     @classmethod
     def str_to_enum(cls, name: str) -> "DatasetEnum":
         for member in cls:
@@ -19,22 +20,22 @@ class DatasetEnum(Enum):
         raise ValueError(f"{name} is not a valid {cls.__name__}")
 
 
-
 def get_dataset(dataset_name: DatasetEnum) -> Dict[str, Dataset]:
-    '''获取数据集字典，包括train和val'''
+    """获取数据集字典，包括train和val"""
     dataset_name_list = ["MNIST"]
     if dataset_name.value not in dataset_name_list:
         raise ValueError("Dataset not found")
-    
+
     if dataset_name == DatasetEnum.MNIST:
         return get_MNIST()
-    
+
 
 def get_MNIST() -> Dict[str, Dataset]:
     train_transforms = transforms.Compose(
         [
             transforms.Resize(224),
             transforms.ToTensor(),
+            transforms.RandomRotation(15),
             transforms.Lambda(lambda x: x.repeat(3, 1, 1)),
             # transforms.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225]),
         ]
@@ -48,6 +49,10 @@ def get_MNIST() -> Dict[str, Dataset]:
         ]
     )
     dataset = {}
-    dataset["train"] = torchvision.datasets.MNIST(root="../datasets", train=True,transform=train_transforms, download=True)
-    dataset["val"] = torchvision.datasets.MNIST(root="../datasets", train=False,transform=val_transforms, download=True)
+    dataset["train"] = torchvision.datasets.MNIST(
+        root="../datasets", train=True, transform=train_transforms, download=True
+    )
+    dataset["val"] = torchvision.datasets.MNIST(
+        root="../datasets", train=False, transform=val_transforms, download=True
+    )
     return dataset

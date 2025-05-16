@@ -1,2 +1,3 @@
-num_epoch:  100
-comment: "ResBase"
+num_epoch:  100  #  number of epoch
+train_id: "ResBase" #  model name
+dataset: "MNIST" #  dataset name
