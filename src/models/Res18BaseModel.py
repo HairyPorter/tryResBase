@@ -33,10 +33,13 @@ class Classifier(nn.Module):
 
 
 class ResBase18Model(nn.Module):
-    def __init__(self):
+    def __init__(self, *, pretrained: bool = False):
         super(ResBase18Model, self).__init__()
-
-        self.resnet = resnet18(weights=ResNet18_Weights.DEFAULT)
+        if pretrained:
+            self.resnet = resnet18(weights=ResNet18_Weights.DEFAULT)
+        else:
+            self.resnet = resnet18(weights=None)
+        # self.resnet = resnet18(weights=ResNet18_Weights.DEFAULT)
         self.resnet.fc = nn.Identity()  # type: ignore
         self.classifier = Classifier(512, 10)
 

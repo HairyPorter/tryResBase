@@ -1,4 +1,5 @@
 import os
+import shutil
 from typing import Dict, List
 
 
@@ -23,9 +24,51 @@ def train(cfg: DictConfig) -> None:
     num_epoch: int = cfg.epoch.num_epoch
     train_id: str = cfg.train_id
 
-    save_root: str = f"./record/{train_id}_{datetime.now().strftime(r'%y%m%d_%H%M')}"
+    # save_root: str = f"./record/{train_id}_{datetime.now().strftime(r'%y%m%d_%H%M')}"
+    # 仅依靠 train_id 来确定保存路径，创建时是否覆盖取决与配置文件new_training，
+    # 覆盖意味着继续训练，不覆盖意味着新的一轮
+    save_root: str = f"./record/{train_id}"
+    new_training: bool = cfg.train.is_new_train
     dataset_name: str = cfg.train.dataset
-    start_epoch: int = cfg.train.start_epoch
+    start_epoch: int = cfg.train.start_epoch if not new_training else 0
+
+    # device
+    if torch.cuda.is_available():
+        device = torch.device("cuda")
+    else:
+        device = torch.device("cpu")
+
+    # record目录
+    if not new_training:
+        save_root = create_save_dir(save_root, is_override=True)
+        # 需要把tb目录备份
+        # 递归复制目录tb，命名为为tb_upto_epoch_{start_epoch}
+        if os.path.exists(os.path.join(save_root, "tb")):
+            shutil.copytree(
+                os.path.join(save_root, "tb"), os.path.join(save_root, f"tb_upto_epoch_{start_epoch}")
+            )
+    else:
+        save_root = create_save_dir(save_root)
+
+    # 模型创建
+    if not new_training:
+        model: nn.Module = ResBase18Model()
+        # 需要指定完整路径
+        model.load_state_dict(torch.load(f"{save_root}/model_{start_epoch}.pth"))
+    else:
+        model: nn.Module = ResBase18Model(pretrained=True)
+    model.to(device)
+
+    # 这部分是特殊处理，预训练模型使用
+    # 冻结指定参数
+    # 解冻layer4
+    for name, param in model.named_parameters():
+        if name.startswith("resnet") and not name.startswith("resnet.layer4"):
+            param.requires_grad = False
+    optimizer = torch.optim.SGD(filter(lambda p: p.requires_grad, model.parameters()), lr=0.01)
+
+    # 损失函数设置
+    loss_fn = torch.nn.CrossEntropyLoss().to(device)
 
     # 加载数据集
     dataset: Dict[str, Dataset] = get_dataset(DatasetEnum.str_to_enum(dataset_name))
@@ -34,30 +77,15 @@ def train(cfg: DictConfig) -> None:
         "val": DataLoader(dataset["val"], batch_size=64, shuffle=True, num_workers=8),
     }
 
-    # device
-    if torch.cuda.is_available():
-        device = torch.device("cuda")
-    else:
-        device = torch.device("cpu")
-
-    # 模型
-    model: nn.Module = ResBase18Model().to(device)
-
-    # 冻结指定参数
-    # 解冻layer4
-    for name, param in model.named_parameters():
-        if name.startswith("resnet") and not name.startswith("resnet.layer4"):
-            param.requires_grad = False
-    optimizer = torch.optim.SGD(filter(lambda p: p.requires_grad, model.parameters()), lr=0.01)
-
-    loss_fn = torch.nn.CrossEntropyLoss().to(device)
-
+    # 记录指标
     loss_epoch: Dict[str, List[float]] = {"train": [], "val": []}
     acc_epoch: Dict[str, List[float]] = {"train": [], "val": []}
 
     with SummaryWriter(os.path.join(save_root, "tb"), filename_suffix=f"ResBase-{datetime.now()}") as writer:
-
-        for epoch in range(start_epoch, num_epoch + 1):
+        # 保存配置文件config.yaml
+        # 实际hydra已经帮忙保存了
+        shutil.copyfile("./conf/config.yaml", os.path.join(save_root, "config.yaml"))
+        for epoch in range(start_epoch + 1, num_epoch + 1):
             # 训练
             loss_batch = []
             acc_batch = []
@@ -129,8 +157,7 @@ def save_checkpoint(
     #     os.makedirs(save_dir)
     create_save_dir(save_dir, is_override=True)
 
-    # 保存在本地中
-
+    # 保存指标缩略图
     fig.savefig(os.path.join(save_dir, f"loss_acc_{epoch}.png"))
     # 保存模型
     torch.save(model.state_dict(), os.path.join(save_dir, f"model_{epoch}.pth"))
