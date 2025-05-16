@@ -1,5 +1,3 @@
-from enum import Enum
-from sympy import false
 import torch
 from torch.utils.data import DataLoader
 import torch.nn as nn
@@ -12,7 +10,7 @@ from torchvision.models.feature_extraction import (
     create_feature_extractor,
 )
 
-from utils.DatasetLoader import DatasetEnum, get_dataset
+from src.utils.DatasetLoader import DatasetEnum, get_dataset
 
 
 class Classifier(nn.Module):
