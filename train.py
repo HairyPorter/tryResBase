@@ -1,36 +1,38 @@
 import os
 import shutil
+import sys
 from typing import Dict, List
-
 
 import hydra
 from omegaconf import DictConfig
 from torch.utils.tensorboard.writer import SummaryWriter
 from tqdm import tqdm
-from src.utils.DatasetLoader import DatasetEnum, get_dataset
 import torch, torchvision
 from torch.utils.data import DataLoader
 from torchvision import transforms
-from src.models.Res18BaseModel import ResBase18Model
 import matplotlib.pyplot as plt
 from datetime import datetime
 from torch.utils.data import Dataset
 from torch import nn
 
+from src.models.Res18BaseModel import ResBase18Model
+from src.utils.DatasetLoader import DatasetEnum, get_dataset
+
 
 @hydra.main(version_base=None, config_path="conf", config_name="config")
 def train(cfg: DictConfig) -> None:
-    # print(f"pwd = {os.getcwd()}")
-    num_epoch: int = cfg.epoch.num_epoch
+
+    num_epoch: int = cfg.train.num_epoch
     train_id: str = cfg.train_id
 
     # save_root: str = f"./record/{train_id}_{datetime.now().strftime(r'%y%m%d_%H%M')}"
     # 仅依靠 train_id 来确定保存路径，创建时是否覆盖取决与配置文件new_training，
     # 覆盖意味着继续训练，不覆盖意味着新的一轮
     save_root: str = f"./record/{train_id}"
-    new_training: bool = cfg.train.is_new_train
+    new_training: bool = cfg.train.new_training
     dataset_name: str = cfg.train.dataset
     start_epoch: int = cfg.train.start_epoch if not new_training else 0
+    datasets_root: str = cfg.train.datasets_root
 
     # device
     if torch.cuda.is_available():
@@ -43,7 +45,9 @@ def train(cfg: DictConfig) -> None:
         save_root = create_save_dir(save_root, is_override=True)
         # 需要把tb目录备份
         # 递归复制目录tb，命名为为tb_upto_epoch_{start_epoch}
-        if os.path.exists(os.path.join(save_root, "tb")):
+        if os.path.exists(os.path.join(save_root, "tb")) and not os.path.exists(
+            os.path.join(save_root, f"tb_upto_epoch_{start_epoch}")
+        ):
             shutil.copytree(
                 os.path.join(save_root, "tb"), os.path.join(save_root, f"tb_upto_epoch_{start_epoch}")
             )
@@ -54,7 +58,7 @@ def train(cfg: DictConfig) -> None:
     if not new_training:
         model: nn.Module = ResBase18Model()
         # 需要指定完整路径
-        model.load_state_dict(torch.load(f"{save_root}/model_{start_epoch}.pth"))
+        model.load_state_dict(torch.load(f"{save_root}/epoch_{start_epoch}/model_{start_epoch}.pth"))
     else:
         model: nn.Module = ResBase18Model(pretrained=True)
     model.to(device)
@@ -71,7 +75,7 @@ def train(cfg: DictConfig) -> None:
     loss_fn = torch.nn.CrossEntropyLoss().to(device)
 
     # 加载数据集
-    dataset: Dict[str, Dataset] = get_dataset(DatasetEnum.str_to_enum(dataset_name))
+    dataset: Dict[str, Dataset] = get_dataset(DatasetEnum.str_to_enum(dataset_name), datasets_root)
     dataLoader: Dict[str, DataLoader] = {
         "train": DataLoader(dataset["train"], batch_size=64, shuffle=True, num_workers=8),
         "val": DataLoader(dataset["val"], batch_size=64, shuffle=True, num_workers=8),
@@ -81,16 +85,18 @@ def train(cfg: DictConfig) -> None:
     loss_epoch: Dict[str, List[float]] = {"train": [], "val": []}
     acc_epoch: Dict[str, List[float]] = {"train": [], "val": []}
 
-    with SummaryWriter(os.path.join(save_root, "tb"), filename_suffix=f"ResBase-{datetime.now()}") as writer:
+    with SummaryWriter(
+        os.path.join(save_root, "tb"), filename_suffix=f"{train_id}-{datetime.now()}"
+    ) as writer:
         # 保存配置文件config.yaml
         # 实际hydra已经帮忙保存了
         shutil.copyfile("./conf/config.yaml", os.path.join(save_root, "config.yaml"))
-        for epoch in range(start_epoch + 1, num_epoch + 1):
+        for epoch in range(start_epoch + 1, start_epoch + num_epoch + 1):
             # 训练
             loss_batch = []
             acc_batch = []
             model.train()
-            for batch in tqdm(dataLoader["train"], desc=f"Epoch:{epoch}/{num_epoch}"):
+            for batch in tqdm(dataLoader["train"], desc=f"Epoch:{epoch}/{start_epoch + num_epoch}"):
                 x = batch[0].to(device)
                 y = batch[1].to(device)
                 optimizer.zero_grad()
@@ -177,5 +183,5 @@ def create_save_dir(save_root: str, *, is_override: bool = False) -> str:
 
 
 if __name__ == "__main__":
-    # train()
-    ...
+    train()
+    # ...

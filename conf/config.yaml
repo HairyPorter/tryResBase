@@ -1,0 +1,11 @@
+train_id: "ResBase_250516_1718" #  model name
+
+train:
+  dataset: "MNIST" #  dataset name
+  new_training: False # 是否新一轮训练
+  datasets_root: "./datasets"
+  # start epoch, 只有继续训练才生效,
+  # 表示上次记录点的epoch ，否则默认是0
+  start_epoch: 100 
+  num_epoch:  100  #  number of epoch
+

@@ -20,7 +20,7 @@ class DatasetEnum(Enum):
         raise ValueError(f"{name} is not a valid {cls.__name__}")
 
 
-def get_dataset(dataset_name: DatasetEnum) -> Dict[str, Dataset]:
+def get_dataset(dataset_name: DatasetEnum, datasets_root: str) -> Dict[str, Dataset]:
     """获取数据集字典，包括train和val"""
     dataset_name_list = ["MNIST"]
     if dataset_name.value not in dataset_name_list:

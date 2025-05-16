@@ -10,8 +10,6 @@ from torchvision.models.feature_extraction import (
     create_feature_extractor,
 )
 
-from src.utils.DatasetLoader import DatasetEnum, get_dataset
-
 
 class Classifier(nn.Module):
 
@@ -50,12 +48,15 @@ class ResBase18Model(nn.Module):
 
 
 if __name__ == "__main__":
+    from utils.DatasetLoader import DatasetEnum, get_dataset
+
     # model = ResBaseModel()
 
     # print(f"{model(torch.randn(1, 3, 224,224)).shape=}")
     # download_dataset("MNIST")
     # get_dataset("MNIST")
-    dataset = get_dataset(DatasetEnum.MNIST)
-    dataLoder = {}
-    dataLoder["train"] = DataLoader(dataset["train"], batch_size=64, shuffle=False)
-    dataLoder["val"] = DataLoader(dataset["val"], batch_size=64, shuffle=False)
+    # dataset = get_dataset(DatasetEnum.MNIST)
+    # dataLoder = {}
+    # dataLoder["train"] = DataLoader(dataset["train"], batch_size=64, shuffle=False)
+    # dataLoder["val"] = DataLoader(dataset["val"], batch_size=64, shuffle=False)
+    ...
