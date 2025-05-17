@@ -48,7 +48,7 @@ class ResBase18Model(nn.Module):
 
 
 if __name__ == "__main__":
-    from utils.DatasetLoader import DatasetEnum, get_dataset
+    from utils.dataset_loader import DatasetEnum, get_dataset
 
     # model = ResBaseModel()
 

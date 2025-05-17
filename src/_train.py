@@ -7,11 +7,11 @@ import hydra
 from omegaconf import DictConfig
 from torch.utils.tensorboard.writer import SummaryWriter
 from tqdm import tqdm
-from utils.DatasetLoader import DatasetEnum, get_dataset
+from utils.dataset_loader import DatasetEnum, get_dataset
 import torch, torchvision
 from torch.utils.data import DataLoader
 from torchvision import transforms
-from models.Res18BaseModel import ResBase18Model
+from models.res18base_model import ResBase18Model
 import matplotlib.pyplot as plt
 from datetime import datetime
 from torch.utils.data import Dataset
