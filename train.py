@@ -15,9 +15,9 @@ from datetime import datetime
 from torch.utils.data import Dataset
 from torch import nn
 
-from models.res18base_model import ResBase18Model
-from utils.dataset_loader import DatasetEnum, get_dataset
-from utils.file_ops import makedirs_inc_suffix, copydir_inc_suffix
+from src.models.res18base_model import ResBase18Model
+from src.utils.dataset_loader import DatasetEnum, get_dataset
+from src.utils.file_ops import makedirs_inc_suffix, copydir_inc_suffix
 
 
 @hydra.main(version_base=None, config_path="conf", config_name="config")
