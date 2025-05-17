@@ -2,16 +2,16 @@ train_name: "ResBase" #  model name
 
 train:
   dataset: "MNIST" #  dataset name
-  new_training: True # 是否新一轮训练
+  new_training: False # 是否新一轮训练
 
   datasets_root: "./datasets"
   num_epoch:  100  #  number of epoch
   last:
     # 如果是继续训练，则需要指定上次记录的train_id
-    id: 
+    id: ResBase_250517_2121
     # start epoch, 只有继续训练才生效,
     # 表示上次记录点的epoch ，否则默认是0
-    start_epoch: 
+    start_epoch: 100
     # record_dir: "./record"
   
 

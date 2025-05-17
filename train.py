@@ -1,7 +1,7 @@
 import os
 import shutil
 import sys
-from typing import Dict, List
+from typing import Any, Dict, List, Optional
 
 import hydra
 from omegaconf import DictConfig
@@ -54,11 +54,16 @@ def train(cfg: DictConfig) -> None:
     else:
         record_dir = makedirs_inc_suffix(record_dir)
 
-    # 模型创建
+    # checkpoint加载
+    checkpoint: Optional[Dict[str, Any]] = None
     if not new_training:
+        checkpoint = torch.load(f"{record_dir}/epoch_{start_epoch}/model_{start_epoch}.pth")
+
+    # 模型创建
+    if not new_training and checkpoint is not None:
         model: nn.Module = ResBase18Model()
-        # 需要指定完整路径
-        model.load_state_dict(torch.load(f"{record_dir}/epoch_{start_epoch}/model_{start_epoch}.pth"))
+
+        model.load_state_dict(checkpoint["model"])
     else:
         model: nn.Module = ResBase18Model(pretrained=True)
     model.to(device)
@@ -71,6 +76,9 @@ def train(cfg: DictConfig) -> None:
 
     # 优化器传入所有参数, 方便冻结的参数变更
     optimizer = torch.optim.SGD(model.parameters(), lr=0.01, momentum=0.9)
+    if not new_training and checkpoint is not None:
+        # optimizer = torch.optim.SGD(model.parameters(), lr=0.01, momentum=0.9)
+        optimizer.load_state_dict(checkpoint["optimizer"])
 
     # 损失函数设置
     loss_fn = torch.nn.CrossEntropyLoss().to(device)
