@@ -27,10 +27,10 @@ def get_dataset(dataset_name: DatasetEnum, datasets_root: str) -> Dict[str, Data
         raise ValueError("Dataset not found")
 
     if dataset_name == DatasetEnum.MNIST:
-        return get_MNIST()
+        return get_MNIST(datasets_root)
 
 
-def get_MNIST() -> Dict[str, Dataset]:
+def get_MNIST(datasets_root: str) -> Dict[str, Dataset]:
     train_transforms = transforms.Compose(
         [
             transforms.Resize(224),
@@ -50,9 +50,9 @@ def get_MNIST() -> Dict[str, Dataset]:
     )
     dataset = {}
     dataset["train"] = torchvision.datasets.MNIST(
-        root="../datasets", train=True, transform=train_transforms, download=True
+        root=datasets_root, train=True, transform=train_transforms, download=True
     )
     dataset["val"] = torchvision.datasets.MNIST(
-        root="../datasets", train=False, transform=val_transforms, download=True
+        root=datasets_root, train=False, transform=val_transforms, download=True
     )
     return dataset
