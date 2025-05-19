@@ -95,9 +95,10 @@ def train(cfg: DictConfig) -> None:
     acc_epoch: Dict[str, List[float]] = {"train": [], "val": []}
 
     with SummaryWriter(os.path.join(record_dir, "tb"), filename_suffix=f"{train_id}") as writer:
-        # 保存配置文件config.yaml
-        # 实际hydra已经帮忙保存了
+        # 保存配置文件config.yaml，train.py
+
         shutil.copyfile("./conf/config.yaml", os.path.join(record_dir, f"{train_id}_config.yaml"))
+        shutil.copyfile("./train.py", os.path.join(record_dir, f"{train_id}_train.py"))
         for epoch in range(start_epoch + 1, start_epoch + num_epoch + 1):
             # 训练
             loss_batch = []

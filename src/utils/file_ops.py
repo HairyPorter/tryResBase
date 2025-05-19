@@ -1,8 +1,6 @@
 import os
 import shutil
 
-from scipy.fft import dst
-
 
 def copydir_inc_suffix(src_dir: str, dst_dir: str) -> str:
     """
