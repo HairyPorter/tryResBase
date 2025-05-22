@@ -1,7 +1,7 @@
 import os
 import shutil
 import sys
-from typing import Any, Dict, List, Optional
+from typing import Any, Dict, List, Mapping, Optional
 
 import hydra
 from omegaconf import DictConfig
@@ -84,7 +84,7 @@ def train(cfg: DictConfig) -> None:
     loss_fn = torch.nn.CrossEntropyLoss().to(device)
 
     # 加载数据集
-    dataset: Dict[str, Dataset] = get_dataset(DatasetEnum.str_to_enum(dataset_name), datasets_root)
+    dataset: Mapping[str, Dataset] = get_dataset(DatasetEnum.str_to_enum(dataset_name), datasets_root)
     dataLoader: Dict[str, DataLoader] = {
         "train": DataLoader(dataset["train"], batch_size=64, shuffle=True, num_workers=8),
         "val": DataLoader(dataset["val"], batch_size=64, shuffle=True, num_workers=8),

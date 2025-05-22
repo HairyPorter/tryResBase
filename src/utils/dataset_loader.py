@@ -1,11 +1,12 @@
+import os
+from typing import Dict, Mapping, Tuple
+from enum import Enum
+import torchvision, torch
+from torch.utils.data import Dataset
 import torch.utils
 import torch.utils.data
-import torchvision, torch
 from torchvision import transforms
-from typing import Dict
-from enum import Enum
-from torch.utils.data import Dataset
-from torchvision.datasets import MNIST
+from torchvision.datasets import MNIST, ImageFolder
 
 
 class DatasetEnum(Enum):
@@ -20,7 +21,7 @@ class DatasetEnum(Enum):
         raise ValueError(f"{name} is not a valid {cls.__name__}")
 
 
-def get_dataset(dataset_name: DatasetEnum, datasets_root: str) -> Dict[str, Dataset]:
+def get_dataset(dataset_name: DatasetEnum, datasets_root: str) -> Mapping[str, Dataset]:
     """获取数据集字典，包括train和val"""
     dataset_name_list = ["MNIST"]
     if dataset_name.value not in dataset_name_list:
@@ -30,7 +31,45 @@ def get_dataset(dataset_name: DatasetEnum, datasets_root: str) -> Dict[str, Data
         return get_MNIST(datasets_root)
 
 
-def get_MNIST(datasets_root: str) -> Dict[str, Dataset]:
+def get_Market1501(dataset_dir: str, size: Tuple[int, int] | int, train_all=False) -> Dict[str, ImageFolder]:
+    if isinstance(size, int):
+        h = size
+        w = size
+    elif isinstance(size, tuple):
+        h, w = size
+    else:
+        raise ValueError("size must be int or tuple")
+    train_transforms = transforms.Compose(
+        [
+            # transforms.RandomResizedCrop(size=128, scale=(0.75,1.0), ratio=(0.75,1.3333), interpolation=3), #Image.BICUBIC)
+            transforms.Resize((h, w), interpolation=3),  # type: ignore
+            transforms.Pad(10),
+            transforms.RandomCrop((h, w)),
+            transforms.RandomHorizontalFlip(),
+            transforms.ToTensor(),
+            transforms.Normalize([0.485, 0.456, 0.406], [0.229, 0.224, 0.225]),
+        ]
+    )
+
+    val_transforms = transforms.Compose(
+        [
+            transforms.Resize(size=(h, w), interpolation=3),  # Image.BICUBIC # type: ignore
+            transforms.ToTensor(),
+            transforms.Normalize([0.485, 0.456, 0.406], [0.229, 0.224, 0.225]),
+        ]
+    )
+
+    dataset_dir = os.path.join(dataset_dir, "pytorch")
+    image_dataset: Dict[str, ImageFolder] = {}
+    image_dataset["train"] = torchvision.datasets.ImageFolder(
+        os.path.join(dataset_dir, "train"), train_transforms
+    )
+    image_dataset["val"] = torchvision.datasets.ImageFolder(os.path.join(dataset_dir, "val"), val_transforms)
+
+    return image_dataset
+
+
+def get_MNIST(datasets_root: str) -> Dict[str, MNIST]:
     train_transforms = transforms.Compose(
         [
             transforms.Resize(224),
@@ -48,7 +87,7 @@ def get_MNIST(datasets_root: str) -> Dict[str, Dataset]:
             # transforms.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225]),
         ]
     )
-    dataset = {}
+    dataset: Dict[str, MNIST] = {}
     dataset["train"] = torchvision.datasets.MNIST(
         root=datasets_root, train=True, transform=train_transforms, download=True
     )

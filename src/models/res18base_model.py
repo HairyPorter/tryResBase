@@ -5,10 +5,6 @@ import torchvision
 from torchvision.models import resnet18
 from torchvision import transforms
 from torchvision.models.resnet import ResNet18_Weights
-from torchvision.models.feature_extraction import (
-    get_graph_node_names,
-    create_feature_extractor,
-)
 
 
 class Classifier(nn.Module):
@@ -16,9 +12,9 @@ class Classifier(nn.Module):
     def __init__(self, input_num: int, num_classes: int):
         super(Classifier, self).__init__()
         self.fc1 = nn.Linear(input_num, num_classes)
-        self.fc2 = nn.Linear(num_classes, num_classes)
-        self.relu = nn.ReLU()
         self.bn1 = nn.BatchNorm1d(num_classes)
+        self.relu = nn.ReLU()
+        self.fc2 = nn.Linear(num_classes, num_classes)
         # self.softmax = nn.Softmax(dim=1)
 
     def forward(self, x):
