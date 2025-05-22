@@ -18,6 +18,7 @@ class Classifier(nn.Module):
         self.fc1 = nn.Linear(input_num, num_classes)
         self.fc2 = nn.Linear(num_classes, num_classes)
         self.relu = nn.ReLU()
+        self.bn1 = nn.BatchNorm1d(num_classes)
         # self.softmax = nn.Softmax(dim=1)
 
     def forward(self, x):
@@ -25,6 +26,7 @@ class Classifier(nn.Module):
         # x = self.softmax(x)
         # 改用一层隐藏层的MLP
         x = self.fc1(x)
+        x = self.bn1(x)
         x = self.relu(x)
         x = self.fc2(x)
         return x
