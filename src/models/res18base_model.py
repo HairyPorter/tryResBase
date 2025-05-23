@@ -13,6 +13,7 @@ class Classifier(nn.Module):
         super(Classifier, self).__init__()
         self.fc1 = nn.Linear(input_num, num_classes)
         self.bn1 = nn.BatchNorm1d(num_classes)
+
         self.relu = nn.ReLU()
         self.fc2 = nn.Linear(num_classes, num_classes)
         # self.softmax = nn.Softmax(dim=1)

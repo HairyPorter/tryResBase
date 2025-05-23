@@ -1,7 +1,7 @@
 train_name: "ResBase" #  model name
 
 train:
-  dataset: "MNIST" #  dataset name
+  dataset: "FashionMNIST" #  dataset name
   new_training: True # 是否新一轮训练
 
   datasets_root: "./datasets"
